@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <thread>
+
 using namespace std;
 
 int conn_handler(int clientSocket) {
@@ -20,6 +21,7 @@ int conn_handler(int clientSocket) {
     string object(tok);
     object.erase(object.begin());
 
+
     // get file type of object
     char *type;
     if (object != "") {
@@ -29,6 +31,7 @@ int conn_handler(int clientSocket) {
     string typeStr(type);
 
     // set the response string based on the request
+
     string response;
     if (object != "") {
         if (access(object.c_str(), F_OK) == -1) {
@@ -54,12 +57,16 @@ int conn_handler(int clientSocket) {
         ss << infile.rdbuf();
         string pdf_str = ss.str();
         response = "HTTP/1.1 200 OK\r\nContent-Type: application/pdf\r\nContent-Length: " + to_string(pdf_str.length())+ "\r\n\r\n"+ pdf_str;
+
+
+
     }
 
     send:
     // send the response
     if (send(clientSocket, response.c_str(), response.length(), 0) < 0) {
         cerr << "Send failed" << endl;
+
         return 1;
     }
 
@@ -95,12 +102,14 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+
     // create socket, set its options, and bind it to an address
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == 0) {
         cerr << "Socket creation failed" << endl;
         return 1;
     }
+
     cout << "serverSocket: " << serverSocket << endl;
     int opt = 1;
     if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) != 0) {
@@ -111,11 +120,13 @@ int main(int argc, char **argv) {
     serverAddress.sin_family = AF_INET;
     try {
         serverAddress.sin_port = htons(stoi(argv[1]));
-    } catch (std::invalid_argument) {
+    old-state
+
         cerr << "usage: ./webserver <portNum>";
         return 1;
     }
     serverAddress.sin_addr.s_addr = INADDR_ANY;
+
     int bindRes = ::bind(serverSocket, (const struct sockaddr*)&serverAddress, sizeof(serverAddress));
     if (bindRes < 0) {
         cerr << "Bind failed" << endl;
@@ -135,7 +146,7 @@ int main(int argc, char **argv) {
             break;
         }
     }
-    
+
     close(serverSocket);
 
     return 0;

@@ -56,16 +56,21 @@ int main(int argc, char **argv) {
         string object(tok);
         object.erase(object.begin());
 
+        string response;
         // get file type of object
         char *type;
         if (object != "") {
+            // if(type == nullptr){
+            //     // If no period found, send 404 Not Found response
+            //     response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\nContent-Length: 22\r\n\r\n404: Content Not Found";
+            //     //goto send;
+            // }
             type = strtok(tok, ".");
             type = strtok(NULL, ".");
         }
         string typeStr(type);
 
         // set the response string based on the request
-        string response;
         if (object != "") {
             if (access(object.c_str(), F_OK) == -1) {
                 response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\nContent-Length: 22\r\n\r\n404: Content Not Found";
@@ -90,6 +95,10 @@ int main(int argc, char **argv) {
             ss << infile.rdbuf();
             string pdf_str = ss.str();
             response = "HTTP/1.1 200 OK\r\nContent-Type: application/pdf\r\nContent-Length: " + to_string(pdf_str.length())+ "\r\n\r\n"+ pdf_str;
+        } else if (typeStr != "pdf" && typeStr != "html") {
+            // If the file exists but with incorrect extension, send 404 Not Found response
+            response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\nContent-Length: 22\r\n\r\n404: Content Not Found";
+            goto send;
         }
 
         send:
