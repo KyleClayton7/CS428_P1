@@ -31,7 +31,6 @@ int conn_handler(int clientSocket) {
     string typeStr(type);
 
     // set the response string based on the request
-
     string response;
     if (object != "") {
         if (access(object.c_str(), F_OK) == -1) {
@@ -39,7 +38,6 @@ int conn_handler(int clientSocket) {
             goto send;
         }
     }
-
     if (object == "") {
         // replies with plain text
         response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\n\r\nHello";
@@ -57,9 +55,6 @@ int conn_handler(int clientSocket) {
         ss << infile.rdbuf();
         string pdf_str = ss.str();
         response = "HTTP/1.1 200 OK\r\nContent-Type: application/pdf\r\nContent-Length: " + to_string(pdf_str.length())+ "\r\n\r\n"+ pdf_str;
-
-
-
     }
 
     send:
@@ -102,7 +97,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-
     // create socket, set its options, and bind it to an address
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == 0) {
@@ -120,8 +114,7 @@ int main(int argc, char **argv) {
     serverAddress.sin_family = AF_INET;
     try {
         serverAddress.sin_port = htons(stoi(argv[1]));
-    old-state
-
+    } catch (std::invalid_argument) {
         cerr << "usage: ./webserver <portNum>";
         return 1;
     }
