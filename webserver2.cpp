@@ -6,11 +6,15 @@
 #include <unistd.h>
 #include <fstream>
 #include <thread>
-
+#include <vector>
 using namespace std;
 
+vector<thread> threadList;
+int numConn = 0;
+
 int conn_handler(int clientSocket) {
-    cout << "handling thread id: " << std::this_thread::get_id() << endl;
+    //cout << "handling thread id: " << std::this_thread::get_id() << endl;
+    //cout << "handling request" << endl;
     char buffer[1024] = {0};
     ::recv(clientSocket, buffer, sizeof(buffer), 0);
 
@@ -28,7 +32,6 @@ int conn_handler(int clientSocket) {
         type = strtok(tok, ".");
         type = strtok(NULL, ".");
     }
-    string typeStr(type);
 
     // set the response string based on the request
     string response;
@@ -41,14 +44,14 @@ int conn_handler(int clientSocket) {
     if (object == "") {
         // replies with plain text
         response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\n\r\nHello";
-    } else if (typeStr == "html") {
+    } else if (strcmp(type, "html") == 0) {
         // html file handler
         ifstream infile(object);
         stringstream ss;
         ss << infile.rdbuf();
         string html_str = ss.str();
         response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + to_string(html_str.length())+ "\r\n\r\n"+ html_str;
-    } else if (typeStr == "pdf") {
+    } else if (strcmp(type, "pdf") == 0) {
         // pdf file handler
         ifstream infile (object);
         stringstream ss;
@@ -80,14 +83,14 @@ int listenSocket(int serverSocket) {
     while (true) {
         // accept, and receive
         int clientSocket = accept(serverSocket, nullptr, nullptr);
-        cout << "clientSocket: " << clientSocket << endl;
+
         if (clientSocket < 0) {
             cerr << "Accept failed" << endl;
             return 1;
             continue;
         }
-        thread newThread (conn_handler, clientSocket);
-        newThread.detach();
+        numConn++;
+        threadList.push_back(thread(conn_handler, clientSocket));
     }
 }
 int main(int argc, char **argv) {
@@ -140,6 +143,10 @@ int main(int argc, char **argv) {
         }
     }
 
+    for (int i = 0; i < threadList.size(); i++) {
+        cout << "joining " << i << endl;
+        threadList[i].join();
+    }
     close(serverSocket);
 
     return 0;
